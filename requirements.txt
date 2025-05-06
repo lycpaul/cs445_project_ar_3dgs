@@ -1,0 +1,6 @@
+matplotlib==3.10.1
+numpy==2.2.5
+Ogre==4.6.0
+ogre_python==14.3.4
+opencv_contrib_python==4.11.0.86
+opencv_python==4.11.0.86
