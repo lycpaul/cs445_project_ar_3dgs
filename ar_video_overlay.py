@@ -16,7 +16,7 @@ cv.ovis.addResourceLocation(
     current_dir + "/r2d2")
 win = cv.ovis.createWindow("arucoAR", imsize, flags=0)
 win.setCameraIntrinsics(K, imsize)
-win.createEntity("figure", "Rtwo_low.mesh", (0, 0, 5), (1.57, 0, 0))
+win.createEntity("figure", "Rtwo_low.mesh", (0, 0, 1), (1.57, 0, 0))
 win.createLightEntity("sun", (0, 0, 2000))
 
 # video capture
@@ -30,7 +30,7 @@ while cv.ovis.waitKey(1) != "q":
     ret, frame = cap.read()
     tvecs, rvecs = arDetector.detectTarget(frame)
     if tvecs is not None:
-        win.setCameraPose(tvecs,
+        win.setCameraPose(tvecs * 5,
                           rvecs, invert=True)
 
     #  check input action
