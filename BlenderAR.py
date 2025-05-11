@@ -174,7 +174,7 @@ def set_object_transform(ref_frame,
                          trans,
                          rot=mathutils.Matrix(),
                          scale=mathutils.Vector((0.005, 0.005, 0.005)),
-                         object_name='r2d2'):
+                         object_name='mesh'):
     mat = mathutils.Matrix.LocRotScale(trans, rot, scale)
     bpy.data.objects[object_name].matrix_world = ref_frame @ mat
 
