@@ -29,3 +29,8 @@ We first demonstrate the AR overlay algorithm in real time using a webcam stream
 
 We then obtain the 3D model of the real scene using the 3DGS technique. Based on the workflow we did on video overlay, we automatically identify the scene's AR code. The AR code pose with respect to Blender's active camera is estimated, and we can relocate our synthetic object on the scene and align it with our target pose.
 ![Blender AR](images/blender_ar.png)
+
+
+**Acknowledgement**
+
+3D Mesh used in this project: "R2-D2 low-poly" (https://skfb.ly/6RrxG) by IgorLethe is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
