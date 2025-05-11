@@ -32,9 +32,9 @@ def set_camera_view(trans, rot):
 
 
 def get_cv_rot_mat() -> mathutils.Matrix:
-    R_cv = np.array([[0.88278894,  0.2500285, -0.39770521],
-                    [0.05772972, -0.89791887, -0.43635877],
-                    [-0.46620914,  0.36225329, -0.80710693]])
+    R_cv = np.array([[0.76670474,  0.64062636,  0.04197281],
+                     [0.43447562, -0.46962788, -0.76855747],
+                     [-0.47264657,  0.60749282, -0.63840246]])
     R_cv2blender = np.array([[1, 0, 0],
                             [0, -1, 0],
                             [0, 0, -1]])
@@ -46,17 +46,13 @@ def get_cv_rot_mat() -> mathutils.Matrix:
 
 # default view point
 mat_cam = camera = bpy.context.scene.camera.matrix_world
-set_camera_view(mathutils.Vector((-1, 3, 8)), (40, 15, 175))
-
-# OpenCV result
-# set_object_view(mat_cam, Vector((0.312, -0.08372, -5.17)))
+set_camera_view(mathutils.Vector((-1.8, 3, 6.5)), (55, 0, 200))
 
 # euler to rotation matrix
-R_mat = mathutils.Euler((1.0024, -0.4284, -0.1314), 'XYZ').to_matrix()
-set_object_mat(mat_cam, mathutils.Vector((1.2989, -0.2734, -4.2197)),
-               R_mat)
+set_object_mat(mat_cam, mathutils.Vector((0.59428577, -0.43290842, -3.00550755)),
+               get_cv_rot_mat())
 
-# debug
+# debug print
 print("mat_cam")
 print(mat_cam)
 
