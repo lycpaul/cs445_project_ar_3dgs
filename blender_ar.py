@@ -1,5 +1,64 @@
 import numpy as np
 import cv2
+import bpy
+import os
+import mathutils
+import math
+
+
+def capture_scene():
+    # tmp directory
+    home_dir = os.path.expanduser('~')
+    filepath = os.path.join(home_dir, 'tmp/blender_scene.png')
+
+    # set render settings
+    bpy.context.scene.render.image_settings.file_format = 'PNG'
+    bpy.context.scene.render.filepath = filepath
+
+    # render camera view
+    bpy.ops.render.render(write_still=True)
+
+    # load cv2 image
+    img = cv2.imread(filepath)
+    return img
+
+
+def get_calibration_matrix_K_from_blender(camd):
+    # Refernce: https://blender.stackexchange.com/questions/15102/what-is-blenders-camera-projection-matrix-model
+    # extract the blender camera matrix
+
+    f_in_mm = camd.lens
+    scene = bpy.context.scene
+    resolution_x_in_px = scene.render.resolution_x
+    resolution_y_in_px = scene.render.resolution_y
+    scale = scene.render.resolution_percentage / 100
+    sensor_width_in_mm = camd.sensor_width
+    sensor_height_in_mm = camd.sensor_height
+    pixel_aspect_ratio = scene.render.pixel_aspect_x / scene.render.pixel_aspect_y
+    if (camd.sensor_fit == 'VERTICAL'):
+        # the sensor height is fixed (sensor fit is horizontal),
+        # the sensor width is effectively changed with the pixel aspect ratio
+        s_u = resolution_x_in_px * scale / sensor_width_in_mm / pixel_aspect_ratio
+        s_v = resolution_y_in_px * scale / sensor_height_in_mm
+    else:  # 'HORIZONTAL' and 'AUTO'
+        # the sensor width is fixed (sensor fit is horizontal),
+        # the sensor height is effectively changed with the pixel aspect ratio
+        pixel_aspect_ratio = scene.render.pixel_aspect_x / scene.render.pixel_aspect_y
+        s_u = resolution_x_in_px * scale / sensor_width_in_mm
+        s_v = resolution_y_in_px * scale * pixel_aspect_ratio / sensor_height_in_mm
+
+    # Parameters of intrinsic calibration matrix K
+    alpha_u = f_in_mm * s_u
+    alpha_v = f_in_mm * s_v
+    u_0 = resolution_x_in_px*scale / 2
+    v_0 = resolution_y_in_px*scale / 2
+    skew = 0  # only use rectangular pixels
+
+    K = mathutils.Matrix(
+        ((alpha_u, skew,    u_0),
+         (0,  alpha_v, v_0),
+         (0,    0,      1)))
+    return K
 
 
 class ArUcoDetector(object):
@@ -111,17 +170,45 @@ class ArUcoDetector(object):
         return np.mean(tvecs_shifted, axis=0)
 
 
+def set_object_transform(ref_frame,
+                         trans,
+                         rot=mathutils.Matrix(),
+                         scale=mathutils.Vector((0.005, 0.005, 0.005)),
+                         object_name='r2d2'):
+    mat = mathutils.Matrix.LocRotScale(trans, rot, scale)
+    bpy.data.objects[object_name].matrix_world = ref_frame @ mat
+
+
+def set_camera_view(trans, rot):
+    # euler to rotation matrix
+    eul = mathutils.Euler(
+        (math.radians(rot[0]), math.radians(rot[1]), math.radians(rot[2])), 'XYZ')
+    mat = eul.to_matrix().to_4x4()
+    mat.translation = trans
+    bpy.context.scene.camera.matrix_world = mat
+
+
 if __name__ == "__main__":
+    # default view point
+    mat_cam = camera = bpy.context.scene.camera.matrix_world
+    set_camera_view(mathutils.Vector((-1.8, 3, 6.5)), (55, 0, 200))
+
     # camera intrinsic
     imsize = (1920, 1080)
-    K = np.array([[1867, 0, 960], [0, 1575, 540], [0, 0, 1]])
+    K = np.array(get_calibration_matrix_K_from_blender(
+        bpy.data.objects['Camera'].data))
+    print("Camera intrinsic matrix:")
+    print(K)
 
     # init detector
     arDetector = ArUcoDetector(imsize, K)
-    frame = cv2.imread("images/detected_marker_3.png")
+    frame = capture_scene()  # capture the blender scene
     R_b, t_b = arDetector.detectMeanTarget(frame)
 
     print("Rotation matrix (blender frame):")
     print(R_b)
     print("Translation vector (blender frame):")
     print(t_b)
+
+    # set the object transform
+    set_object_transform(mat_cam, mathutils.Vector(t_b), mathutils.Matrix(R_b))

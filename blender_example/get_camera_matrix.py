@@ -1,9 +1,11 @@
 import bpy
-from mathutils import Matrix
+import mathutils
 
-# Refernce: https://blender.stackexchange.com/questions/15102/what-is-blenders-camera-projection-matrix-model
 
 def get_calibration_matrix_K_from_blender(camd):
+    # Refernce: https://blender.stackexchange.com/questions/15102/what-is-blenders-camera-projection-matrix-model
+    # extract the blender camera matrix
+
     f_in_mm = camd.lens
     scene = bpy.context.scene
     resolution_x_in_px = scene.render.resolution_x
@@ -31,7 +33,7 @@ def get_calibration_matrix_K_from_blender(camd):
     v_0 = resolution_y_in_px*scale / 2
     skew = 0  # only use rectangular pixels
 
-    K = Matrix(
+    K = mathutils.Matrix(
         ((alpha_u, skew,    u_0),
          (0,  alpha_v, v_0),
          (0,    0,      1)))
@@ -39,6 +41,5 @@ def get_calibration_matrix_K_from_blender(camd):
 
 
 if __name__ == "__main__":
-    # Insert your camera name below
     K = get_calibration_matrix_K_from_blender(bpy.data.objects['Camera'].data)
     print(K)
